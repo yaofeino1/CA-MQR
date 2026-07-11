@@ -98,7 +98,7 @@ for sec in doc.sections:
     fp = ftr.paragraphs[0]
     fp.text = ''
     fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    set_run(fp.add_run('第40届南京地区研究生通信年会'), cn='宋体',
+    set_run(fp.add_run('第41届南京地区研究生通信年会'), cn='宋体',
             en='Times New Roman', size=9)
 
 # ---------- 正文默认样式 ----------

@@ -12,10 +12,11 @@ MU = 3.986e14         # 地球引力常数 m^3/s^2
 
 
 class Constellation:
-    def __init__(self, P=6, S=11, h=550e3, inc_deg=53.0, n_gw=5, seed=42):
+    def __init__(self, P=6, S=11, h=550e3, inc_deg=53.0, F=1, n_gw=5, seed=42):
         self.P = P                      # 轨道面数
         self.S = S                      # 每面卫星数
         self.N = P * S                  # 卫星总数
+        self.F = F                      # Walker Delta 相位因子(0<=F<=P-1)
         self.h = h                      # 轨道高度
         self.r = R_E + h                # 轨道半径
         self.inc = np.deg2rad(inc_deg)  # 倾角
@@ -31,11 +32,12 @@ class Constellation:
     def sat_positions(self, t):
         pos = np.zeros((self.N, 3))
         for p in range(self.P):
-            Omega = 2 * np.pi * p / self.P          # 升交点赤经
+            Omega = 2 * np.pi * p / self.P          # 升交点赤经(均匀分布于360度)
             for s in range(self.S):
                 idx = p * self.S + s
-                # 相位: 面内均匀 + 相邻面相位偏移
-                phase = self.omega * t + 2 * np.pi * s / self.S + np.pi * p / self.P
+                # 标准 Walker Delta 相位: 面内均匀 + 相邻面相位偏移 F*2pi/N
+                phase = (self.omega * t + 2 * np.pi * s / self.S
+                         + 2 * np.pi * self.F * p / self.N)
                 # 轨道面内坐标
                 x0 = self.r * np.cos(phase)
                 y0 = self.r * np.sin(phase)
@@ -67,7 +69,7 @@ class Constellation:
         # 跨面链路: 由当前相位到"反向缝/极区"的相位差推算剩余可用时间
         s_i = i % self.S
         phase_i = (self.omega * t + 2 * np.pi * s_i / self.S
-                   + np.pi * p_i / self.P) % (2 * np.pi)
+                   + 2 * np.pi * self.F * p_i / self.N) % (2 * np.pi)
         # 卫星运行到纬度幅角接近 +-90 deg(极区)时跨面链路拉长/断开
         # 纬度幅角 = phase, 距最近极点(pi/2 或 3pi/2)的相位差
         to_pole = min(abs(phase_i - np.pi / 2), abs(phase_i - 3 * np.pi / 2))
