@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# 系统文件
+.DS_Store
+
+# 训练临时产物(结果已在 results/ 归档, 无需重复提交)
+*.pt
+*.ckpt
